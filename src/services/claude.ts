@@ -37,6 +37,7 @@ export interface ClaudeOptions {
   sessionId?: string;
   workingDir?: string;
   isNewSession?: boolean;
+  mcpConfigJson?: string;
 }
 
 export async function executeClaudeCode(
@@ -75,6 +76,11 @@ export async function executeClaudeCode(
       "--append-system-prompt",
       `When you need to create or save any files (markdown, images, code, etc.), always create them in ${env.TEMP_DIR} directory.`
     );
+
+    // MCP configuration (keyword-matched)
+    if (options?.mcpConfigJson) {
+      args.push("--mcp-config", options.mcpConfigJson);
+    }
 
     args.push("--", prompt);
 
