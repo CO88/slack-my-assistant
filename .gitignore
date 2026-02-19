@@ -22,6 +22,9 @@ temp/
 .DS_Store
 Thumbs.db
 
+# MCP config (may contain API keys via env var references)
+mcp-config.json
+
 # Local only
 .task/
 .claude/

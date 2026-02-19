@@ -1,5 +1,6 @@
 import type { App } from "@slack/bolt";
 import type { SessionService } from "../../services/session.js";
+import type { McpService } from "../../services/mcp.js";
 import { executeClaudeCode } from "../../services/claude.js";
 import { saveAsMarkdown } from "../../services/markdown.js";
 import { authMiddleware } from "../middleware.js";
@@ -27,7 +28,7 @@ function buildPromptWithFiles(text: string | undefined, files: DownloadedFile[])
   return parts.join("\n\n");
 }
 
-export function registerMessageHandler(app: App, sessionService: SessionService): void {
+export function registerMessageHandler(app: App, sessionService: SessionService, mcpService: McpService): void {
   app.message(authMiddleware, async ({ message, say, client }) => {
     const allowedSubtypes = new Set([undefined, "file_share"]);
     const subtype = "subtype" in message ? message.subtype : undefined;
@@ -85,11 +86,13 @@ export function registerMessageHandler(app: App, sessionService: SessionService)
       await say("Processing your request...");
     }
 
-    const result = await executeClaudeCode(prompt, {
-      sessionId: session.sessionId,
-      workingDir: session.workingDir,
-      isNewSession,
-    });
+    const mcpConfigJson = mcpService.matchConfig(prompt);
+
+    const claudeOptions = mcpConfigJson
+      ? { sessionId: session.sessionId, workingDir: session.workingDir, isNewSession, mcpConfigJson }
+      : { sessionId: session.sessionId, workingDir: session.workingDir, isNewSession };
+
+    const result = await executeClaudeCode(prompt, claudeOptions);
 
     sessionService.updateLastUsed(session.sessionId);
 

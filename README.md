@@ -84,6 +84,7 @@ Install the app to your workspace and copy the **Bot User OAuth Token**.
 | `OUTPUT_DIR` | Directory for response log files | No | `./output` |
 | `TEMP_DIR` | Directory for temporary files | No | `./temp` |
 | `DB_PATH` | Path to SQLite database file | No | `./data/sessions.db` |
+| `MCP_CONFIG_PATH` | Path to MCP server config file | No | — |
 
 ## Usage
 
@@ -104,6 +105,68 @@ yarn build && yarn start
 3. Select a working directory and create or resume a session
 4. Send messages — they are forwarded to Claude Code and responses are sent back in a thread
 5. Attach files — they are downloaded and passed to Claude Code as context
+
+## MCP Integration (Optional)
+
+You can connect external services (e.g., Datadog) to Claude Code via [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) servers. MCP servers are only loaded when your message contains matching keywords, so there is no overhead for regular messages.
+
+### Setup
+
+1. Copy the example config:
+   ```bash
+   cp mcp-config.example.json mcp-config.json
+   ```
+
+2. Add the config path and any required API keys to `.env`:
+   ```
+   MCP_CONFIG_PATH=./mcp-config.json
+   DATADOG_API_KEY=your_api_key
+   DATADOG_APP_KEY=your_app_key
+   ```
+
+3. Restart the bot. Now messages containing keywords like "datadog" will automatically load the Datadog MCP server.
+
+### How keyword matching works
+
+The `mcp-config.json` file maps server names to keywords:
+
+```json
+{
+  "servers": {
+    "datadog": {
+      "keywords": ["datadog", "dd"],
+      "config": { "command": "npx", "args": ["-y", "@winor30/mcp-server-datadog"], ... }
+    }
+  }
+}
+```
+
+- When a message contains "datadog" or "dd" (case-insensitive), the Datadog MCP server is loaded for that request only.
+- Messages without matching keywords run without any MCP servers (zero overhead).
+- You can add multiple servers with different keywords.
+
+### Adding a custom MCP server
+
+Add a new entry under `servers` in `mcp-config.json`:
+
+```json
+{
+  "servers": {
+    "github": {
+      "keywords": ["github", "gh", "pull request", "issue"],
+      "config": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-github"],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+        }
+      }
+    }
+  }
+}
+```
+
+Environment variables in `${VAR}` format are resolved from your `.env` / process environment at runtime.
 
 ## How It Works
 
@@ -139,6 +202,7 @@ slack-my-assistant/
 │   ├── services/
 │   │   ├── claude.ts               # Claude Code CLI execution
 │   │   ├── markdown.ts             # Markdown file generation
+│   │   ├── mcp.ts                  # MCP config loading & keyword matching
 │   │   └── session.ts              # SQLite session management
 │   ├── slack/
 │   │   ├── app.ts                  # Slack Bolt app initialization
@@ -154,6 +218,7 @@ slack-my-assistant/
 │       ├── message.ts              # Message splitting
 │       └── time.ts                 # Time formatting
 ├── .env.example                    # Environment variable template
+├── mcp-config.example.json         # MCP server config template
 ├── package.json
 ├── tsconfig.json
 └── README.md

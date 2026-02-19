@@ -37,6 +37,7 @@ slack-my-assistant/
 │   ├── services/
 │   │   ├── claude.ts               # Claude Code CLI spawn and stream parsing
 │   │   ├── markdown.ts             # Response logging as markdown files
+│   │   ├── mcp.ts                  # MCP config loading, keyword matching
 │   │   └── session.ts              # SQLite session CRUD and in-memory active tracking
 │   ├── slack/
 │   │   ├── app.ts                  # Slack Bolt app initialization
@@ -52,6 +53,7 @@ slack-my-assistant/
 │       ├── message.ts              # Message chunking for Slack limits
 │       └── time.ts                 # Relative time formatting
 ├── .env.example
+├── mcp-config.example.json         # MCP server configuration template
 ├── package.json
 ├── tsconfig.json
 └── README.md
@@ -80,6 +82,7 @@ yarn start      # Start production server (from dist/)
 | `OUTPUT_DIR` | Directory for log MD files | `./output` |
 | `TEMP_DIR` | Directory for temp MD files | `./temp` |
 | `DB_PATH` | SQLite database path | `./data/sessions.db` |
+| `MCP_CONFIG_PATH` | Path to MCP server config file | Optional |
 
 ## Architecture Notes
 
