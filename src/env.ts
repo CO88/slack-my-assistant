@@ -17,6 +17,8 @@ const envSchema = z.object({
   PORT: z.string().default("3000").transform(Number),
   SKIP_PERMISSIONS: z.string().default("true").transform(val => val === "true"),
 
+  MCP_CONFIG_PATH: z.string().optional().transform(val => val ? toAbsolutePath(val) : undefined),
+
   OUTPUT_DIR: z.string().default("./output").transform(toAbsolutePath),
   TEMP_DIR: z.string().default("./temp").transform(toAbsolutePath),
   DB_PATH: z.string().default("./data/sessions.db").transform(toAbsolutePath),
